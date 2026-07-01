@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ff5a3c">
+<meta name="theme-color" content="#6a3fd6">
 <meta name="description" content="A bright, offline-friendly scorekeeper for the card game Skyjo.">
 <title>Skyjo Score</title>
 <link rel="manifest" href="manifest.json">
@@ -17,11 +17,9 @@
 
   <!-- SETUP SCREEN -->
   <section id="setup-screen" class="screen">
+    <button type="button" id="theme-toggle-setup" class="theme-toggle-float" aria-label="Toggle dark mode">&#127769;</button>
     <div class="setup-card">
-      <h1 class="logo">
-        <span class="logo-tile t-purple">S</span><span class="logo-tile t-blue">K</span><span class="logo-tile t-green">Y</span><span class="logo-tile t-yellow">J</span><span class="logo-tile t-red">O</span>
-      </h1>
-      <p class="tagline">Score Tracker</p>
+      <img src="icons/icon.svg" alt="Skyjo Score" class="hero-logo">
 
       <label class="field-label" for="player-count">Number of players</label>
       <div class="stepper">
@@ -41,8 +39,9 @@
   <!-- GAME SCREEN -->
   <section id="game-screen" class="screen" hidden>
     <header class="topbar">
-      <div class="brand">Skyjo <span class="brand-sub">Score</span></div>
+      <div class="brand"><img src="icons/icon.svg" alt="" class="brand-logo">Skyjo <span class="brand-sub">Score</span></div>
       <div class="topbar-actions">
+        <button type="button" id="theme-toggle-game" class="icon-btn" aria-label="Toggle dark mode">&#127769;</button>
         <button type="button" id="rules-btn" class="icon-btn" aria-label="Rules">?</button>
         <button type="button" id="new-game-btn" class="icon-btn" aria-label="New game">&#8635;</button>
       </div>

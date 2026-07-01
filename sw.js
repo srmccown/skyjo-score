@@ -1,4 +1,4 @@
-const CACHE_NAME = "skyjo-score-v3";
+const CACHE_NAME = "skyjo-score-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const ASSETS = [
   "./app.js",
   "./manifest.json",
   "./icons/icon.svg",
+  "./icons/icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];

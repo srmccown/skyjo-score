@@ -12,6 +12,7 @@
   ];
 
   var draftCount = 4;
+  var draftNames = [];
 
   var els = {
     setupScreen: document.getElementById("setup-screen"),
@@ -31,7 +32,9 @@
     nameRow: document.getElementById("name-row"),
     totalRow: document.getElementById("total-row"),
     scoreBody: document.getElementById("score-body"),
-    addRoundBtn: document.getElementById("add-round-btn")
+    addRoundBtn: document.getElementById("add-round-btn"),
+    themeToggleSetup: document.getElementById("theme-toggle-setup"),
+    themeToggleGame: document.getElementById("theme-toggle-game")
   };
 
   var state = null; // { players: [{name,color}], rounds: [{scores:[...], ender:idx|null}] }
@@ -53,6 +56,36 @@
     localStorage.removeItem(STORAGE_KEY);
   }
 
+  // ---------- Theme ----------
+
+  var THEME_KEY = "skyjo-score-theme";
+  var DARK_ICON = "☀️";
+  var LIGHT_ICON = "\u{1F319}";
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    var icon = theme === "dark" ? DARK_ICON : LIGHT_ICON;
+    if (els.themeToggleSetup) els.themeToggleSetup.textContent = icon;
+    if (els.themeToggleGame) els.themeToggleGame.textContent = icon;
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "dark" ? "#171225" : "#6a3fd6");
+  }
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute("data-theme");
+    var next = current === "dark" ? "light" : "dark";
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  }
+
+  function initTheme() {
+    var saved = localStorage.getItem(THEME_KEY);
+    applyTheme(saved === "dark" ? "dark" : "light");
+  }
+
+  if (els.themeToggleSetup) els.themeToggleSetup.addEventListener("click", toggleTheme);
+  if (els.themeToggleGame) els.themeToggleGame.addEventListener("click", toggleTheme);
+
   // ---------- Setup screen ----------
 
   function renderNameInputs() {
@@ -72,6 +105,10 @@
       input.placeholder = "Player " + (i + 1);
       input.id = "draft-name-" + i;
       input.autocomplete = "off";
+      input.value = draftNames[i] || "";
+      input.addEventListener("input", (function (idx) {
+        return function (e) { draftNames[idx] = e.target.value; };
+      })(i));
       field.appendChild(input);
 
       els.nameInputs.appendChild(field);
@@ -409,6 +446,7 @@
   // ---------- Boot ----------
 
   function boot() {
+    initTheme();
     updatePlayerCountUI();
     renderNameInputs();
 
