@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff5a3c">
+<meta name="description" content="A bright, offline-friendly scorekeeper for the card game Skyjo.">
+<title>Skyjo Score</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- SETUP SCREEN -->
+  <section id="setup-screen" class="screen">
+    <div class="setup-card">
+      <h1 class="logo">
+        <span class="logo-tile t-purple">S</span><span class="logo-tile t-blue">K</span><span class="logo-tile t-green">Y</span><span class="logo-tile t-yellow">J</span><span class="logo-tile t-red">O</span>
+      </h1>
+      <p class="tagline">Score Tracker</p>
+
+      <label class="field-label" for="player-count">Number of players</label>
+      <div class="stepper">
+        <button type="button" id="player-dec" class="stepper-btn" aria-label="Fewer players">&minus;</button>
+        <span id="player-count" class="stepper-value">4</span>
+        <button type="button" id="player-inc" class="stepper-btn" aria-label="More players">&plus;</button>
+      </div>
+
+      <div id="player-name-inputs" class="name-grid"></div>
+
+      <button type="button" id="start-game-btn" class="btn btn-primary btn-block">Start Game</button>
+      <button type="button" id="resume-game-btn" class="btn btn-ghost btn-block" hidden>Resume Previous Game</button>
+      <button type="button" id="show-rules-btn" class="btn btn-link">How to score Skyjo</button>
+    </div>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section id="game-screen" class="screen" hidden>
+    <header class="topbar">
+      <div class="brand">Skyjo <span class="brand-sub">Score</span></div>
+      <div class="topbar-actions">
+        <button type="button" id="rules-btn" class="icon-btn" aria-label="Rules">?</button>
+        <button type="button" id="new-game-btn" class="icon-btn" aria-label="New game">&#8635;</button>
+      </div>
+    </header>
+
+    <div id="winner-banner" class="winner-banner" hidden></div>
+
+    <div class="table-scroll">
+      <table id="score-table">
+        <thead>
+          <tr id="name-row"></tr>
+          <tr id="total-row" class="total-row"></tr>
+        </thead>
+        <tbody id="score-body"></tbody>
+      </table>
+    </div>
+
+    <div class="bottom-actions">
+      <button type="button" id="add-round-btn" class="btn btn-primary btn-block">+ Add Round</button>
+    </div>
+
+    <p class="hint">Tap the flag under a player to mark who ended that round.</p>
+  </section>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <button type="button" id="close-rules-btn" class="modal-close" aria-label="Close">&times;</button>
+      <h2>Skyjo Scoring, Quick Reference</h2>
+      <ul class="rules-list">
+        <li>Each player starts with 12 face-down cards in a 4&times;3 grid and flips 2 face up.</li>
+        <li>On a turn, draw or take the discard, then swap it into your grid or discard and flip one card.</li>
+        <li>If a whole column (3 cards) is face up and matching, it's cleared and counts as <strong>0</strong>.</li>
+        <li>A round ends when a player reveals all 12 cards; everyone else gets one final turn, then all hands are revealed.</li>
+        <li>Each player's round score is the sum of their visible cards (cleared columns = 0).</li>
+        <li><strong>Penalty:</strong> if the player who ended the round doesn't have the strictly lowest score that round, their score is doubled.</li>
+        <li>Round scores add up over the game. Once any player reaches 100+, the round after finishes and the lowest total wins.</li>
+      </ul>
+      <p class="rules-source">Full rules: <a href="https://www.64ouncegames.com/pages/skyjo-rules" target="_blank" rel="noopener noreferrer">64ouncegames.com/pages/skyjo-rules</a></p>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
