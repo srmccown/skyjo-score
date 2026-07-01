@@ -34,7 +34,9 @@
     scoreBody: document.getElementById("score-body"),
     addRoundBtn: document.getElementById("add-round-btn"),
     themeToggleSetup: document.getElementById("theme-toggle-setup"),
-    themeToggleGame: document.getElementById("theme-toggle-game")
+    themeToggleGame: document.getElementById("theme-toggle-game"),
+    heroLogoImg: document.getElementById("hero-logo-img"),
+    brandLogoImg: document.getElementById("brand-logo-img")
   };
 
   var state = null; // { players: [{name,color}], rounds: [{scores:[...], ender:idx|null}] }
@@ -69,6 +71,9 @@
     if (els.themeToggleGame) els.themeToggleGame.textContent = icon;
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", theme === "dark" ? "#171225" : "#6a3fd6");
+    var logoSrc = theme === "dark" ? "icons/icon-dark.svg" : "icons/icon.svg";
+    if (els.heroLogoImg) els.heroLogoImg.src = logoSrc;
+    if (els.brandLogoImg) els.brandLogoImg.src = logoSrc;
   }
 
   function toggleTheme() {

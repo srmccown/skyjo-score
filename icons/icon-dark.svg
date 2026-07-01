@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#171225"/>
+  <g font-family="Arial, Helvetica, sans-serif" font-weight="800" text-anchor="middle">
+    <rect x="30" y="140" width="98" height="114" rx="20" fill="#6a3fd6" stroke="#f3ecff" stroke-width="6" transform="rotate(-6 79 197)"/>
+    <text x="79" y="216" font-size="60" fill="#ffffff" transform="rotate(-6 79 197)">S</text>
+
+    <rect x="118" y="160" width="98" height="114" rx="20" fill="#1fa9d8" stroke="#f3ecff" stroke-width="6" transform="rotate(5 167 217)"/>
+    <text x="167" y="236" font-size="60" fill="#ffffff" transform="rotate(5 167 217)">K</text>
+
+    <rect x="206" y="140" width="98" height="114" rx="20" fill="#3cb54a" stroke="#f3ecff" stroke-width="6" transform="rotate(-5 255 197)"/>
+    <text x="255" y="216" font-size="60" fill="#ffffff" transform="rotate(-5 255 197)">Y</text>
+
+    <rect x="294" y="160" width="98" height="114" rx="20" fill="#f6c31b" stroke="#f3ecff" stroke-width="6" transform="rotate(6 343 217)"/>
+    <text x="343" y="236" font-size="60" fill="#2a2140" transform="rotate(6 343 217)">J</text>
+
+    <rect x="382" y="140" width="98" height="114" rx="20" fill="#ee4136" stroke="#f3ecff" stroke-width="6" transform="rotate(-4 431 197)"/>
+    <text x="431" y="216" font-size="60" fill="#ffffff" transform="rotate(-4 431 197)">O</text>
+  </g>
+  <rect x="86" y="322" width="340" height="86" rx="43" fill="#f3ecff"/>
+  <text x="256" y="378" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="800" fill="#2a2140" text-anchor="middle" letter-spacing="4">SCORE</text>
+</svg>
