@@ -88,6 +88,22 @@
     applyTheme(saved === "dark" ? "dark" : "light");
   }
 
+  // iOS only reads <link rel="apple-touch-icon"> at the moment the page is
+  // added to the Home Screen (it does not honor a `media` attribute on it,
+  // unlike the favicon links above), so the closest we can get to a "dark
+  // icon" is keeping this single link's href in sync with the system
+  // appearance while the page is open, in case that's when the user adds it.
+  function syncAppleTouchIconToSystemAppearance() {
+    var link = document.getElementById("apple-touch-icon-link");
+    if (!link || !window.matchMedia) return;
+    var query = window.matchMedia("(prefers-color-scheme: dark)");
+    function update() {
+      link.setAttribute("href", query.matches ? "icons/icon-180-dark.png" : "icons/icon-180.png");
+    }
+    update();
+    if (query.addEventListener) query.addEventListener("change", update);
+  }
+
   if (els.themeToggleSetup) els.themeToggleSetup.addEventListener("click", toggleTheme);
   if (els.themeToggleGame) els.themeToggleGame.addEventListener("click", toggleTheme);
 
@@ -452,6 +468,7 @@
 
   function boot() {
     initTheme();
+    syncAppleTouchIconToSystemAppearance();
     updatePlayerCountUI();
     renderNameInputs();
 
