@@ -183,7 +183,7 @@
         var v = round.scores[i];
         if (v !== null && v !== undefined && v !== "") others.push(Number(v));
       }
-      if (others.length > 0) {
+      if (others.length > 0 && raw > 0) {
         var isLowest = others.every(function (v) { return raw < v; });
         if (!isLowest) return raw * 2;
       }
