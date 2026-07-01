@@ -280,21 +280,50 @@
 
         var input = document.createElement("input");
         input.className = "score-input";
-        input.type = "number";
+        input.type = "text";
         input.inputMode = "numeric";
         input.pattern = "-?[0-9]*";
+        input.autocomplete = "off";
         var val = round.scores[pIdx];
         input.value = (val === null || val === undefined) ? "" : String(val);
         input.placeholder = "–";
         input.addEventListener("input", function () {
-          var v = input.value;
-          round.scores[pIdx] = (v === "" ? null : Number(v));
+          var negative = input.value.indexOf("-") !== -1;
+          var digits = input.value.replace(/[^0-9]/g, "");
+          var num = digits === "" ? null : Number(digits) * (negative ? -1 : 1);
+          round.scores[pIdx] = num;
+          input.value = num === null ? (negative ? "-" : "") : String(num);
+          signBtn.classList.toggle("active", negative);
           saveState();
           renderTotals();
           renderDoubledStyles();
           renderWinnerBanner();
         });
         stack.appendChild(input);
+
+        var controls = document.createElement("div");
+        controls.className = "cell-controls";
+
+        var signBtn = document.createElement("button");
+        signBtn.type = "button";
+        signBtn.className = "sign-btn" + ((round.scores[pIdx] || 0) < 0 ? " active" : "");
+        signBtn.setAttribute("aria-label", "Toggle negative for " + p.name);
+        signBtn.innerHTML = "&plusmn;";
+        signBtn.addEventListener("click", function () {
+          var negative = input.value.indexOf("-") !== -1;
+          var digits = input.value.replace(/[^0-9]/g, "");
+          negative = !negative;
+          var num = digits === "" ? null : Number(digits) * (negative ? -1 : 1);
+          round.scores[pIdx] = num;
+          input.value = num === null ? (negative ? "-" : "") : String(num);
+          signBtn.classList.toggle("active", negative);
+          input.focus();
+          saveState();
+          renderTotals();
+          renderDoubledStyles();
+          renderWinnerBanner();
+        });
+        controls.appendChild(signBtn);
 
         var flag = document.createElement("button");
         flag.type = "button";
@@ -306,7 +335,9 @@
           saveState();
           renderGame();
         });
-        stack.appendChild(flag);
+        controls.appendChild(flag);
+
+        stack.appendChild(controls);
 
         td.appendChild(stack);
         tr.appendChild(td);
