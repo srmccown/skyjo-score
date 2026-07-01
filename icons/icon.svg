@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#6a3fd6"/>
+  <g>
+    <rect x="86" y="86" width="150" height="150" rx="24" fill="#1fa9d8" stroke="#2a2140" stroke-width="10"/>
+    <rect x="276" y="86" width="150" height="150" rx="24" fill="#f6c31b" stroke="#2a2140" stroke-width="10"/>
+    <rect x="86" y="276" width="150" height="150" rx="24" fill="#ee4136" stroke="#2a2140" stroke-width="10"/>
+    <rect x="276" y="276" width="150" height="150" rx="24" fill="#3cb54a" stroke="#2a2140" stroke-width="10"/>
+  </g>
+  <text x="161" y="182" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="351" y="182" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#2a2140" text-anchor="middle">7</text>
+  <text x="161" y="372" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#ffffff" text-anchor="middle">-1</text>
+  <text x="351" y="372" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#ffffff" text-anchor="middle">0</text>
+</svg>
