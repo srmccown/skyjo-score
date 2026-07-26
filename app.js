@@ -278,7 +278,7 @@
 
       var totals = computeTotals(game);
       var min = Math.min.apply(null, totals);
-      var isOver = Math.max.apply(null, totals) >= 100;
+      var isOver = !game.dismissBanner && Math.max.apply(null, totals) >= 100;
       var leaders = game.players
         .filter(function (p, idx) { return totals[idx] === min; })
         .map(function (p) { return p.name; })
@@ -355,6 +355,10 @@
 
   function addRound() {
     if (state.rounds.length >= MAX_ROUNDS) return;
+    // Adding another round after the "Game over" banner appeared means the
+    // player wants to keep going past the 100+ threshold, so stop announcing
+    // a winner for the rest of this game.
+    if (Math.max.apply(null, computeTotals(state)) >= 100) state.dismissBanner = true;
     var scores = [];
     for (var i = 0; i < state.players.length; i++) scores.push(null);
     state.rounds.push({ scores: scores, ender: null });
@@ -631,6 +635,18 @@
     });
   }
 
+  // The name row's height varies (starting-score notes, font sizes, themes),
+  // so the total row - stuck directly beneath it - needs its sticky offset
+  // measured and applied at render time rather than hard-coded in CSS.
+  function syncTotalRowStickyOffset() {
+    var height = els.nameRow.getBoundingClientRect().height;
+    if (!height) return;
+    var px = height + "px";
+    Array.prototype.forEach.call(els.totalRow.children, function (th) {
+      th.style.top = px;
+    });
+  }
+
   function renderTotals() {
     els.totalRow.innerHTML = "";
     var blank = document.createElement("th");
@@ -652,13 +668,14 @@
       els.totalRow.appendChild(th);
     });
 
+    syncTotalRowStickyOffset();
     renderDoubledStyles();
   }
 
   function renderWinnerBanner() {
     var totals = computeTotals(state);
     var maxTotal = Math.max.apply(null, totals);
-    if (maxTotal < 100) {
+    if (maxTotal < 100 || state.dismissBanner) {
       els.winnerBanner.hidden = true;
       return;
     }

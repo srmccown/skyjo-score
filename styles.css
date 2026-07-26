@@ -44,9 +44,9 @@ body {
     var(--paper);
 }
 
-#app { min-height: 100%; }
+#app { height: 100%; }
 
-.screen { min-height: 100%; display: flex; flex-direction: column; }
+.screen { height: 100%; display: flex; flex-direction: column; }
 
 button { font-family: inherit; }
 
@@ -56,6 +56,7 @@ button { font-family: inherit; }
   align-items: center;
   justify-content: center;
   padding: max(24px, var(--safe-t)) 16px calc(24px + var(--safe-b));
+  overflow-y: auto;
 }
 
 .setup-card {
