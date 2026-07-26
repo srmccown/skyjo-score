@@ -4,7 +4,7 @@
   var MIN_PLAYERS = 2;
   var MAX_PLAYERS = 8;
   var MAX_ROUNDS = 10;
-  var STORAGE_KEY = "skyjo-score-state";
+  var GAMES_KEY = "skyjo-score-games";
 
   var PLAYER_COLORS = [
     "#6a3fd6", "#1fa9d8", "#3cb54a", "#f6c31b",
@@ -22,10 +22,11 @@
     playerInc: document.getElementById("player-inc"),
     nameInputs: document.getElementById("player-name-inputs"),
     startBtn: document.getElementById("start-game-btn"),
-    resumeBtn: document.getElementById("resume-game-btn"),
+    gamesListSection: document.getElementById("games-list-section"),
+    gamesList: document.getElementById("games-list"),
     showRulesBtn: document.getElementById("show-rules-btn"),
     rulesBtn: document.getElementById("rules-btn"),
-    newGameBtn: document.getElementById("new-game-btn"),
+    myGamesBtn: document.getElementById("my-games-btn"),
     rulesModal: document.getElementById("rules-modal"),
     closeRulesBtn: document.getElementById("close-rules-btn"),
     winnerBanner: document.getElementById("winner-banner"),
@@ -36,26 +37,83 @@
     themeToggleSetup: document.getElementById("theme-toggle-setup"),
     themeToggleGame: document.getElementById("theme-toggle-game"),
     heroLogoImg: document.getElementById("hero-logo-img"),
-    brandLogoImg: document.getElementById("brand-logo-img")
+    brandLogoImg: document.getElementById("brand-logo-img"),
+    gameNameInput: document.getElementById("game-name-input")
   };
 
-  var state = null; // { players: [{name,color}], rounds: [{scores:[...], ender:idx|null}] }
+  var state = null; // one saved game record: { id, name, players: [{name,color}], rounds: [{scores:[...], ender:idx|null}], createdAt, updatedAt }
 
-  function loadState() {
+  // ---------- Multi-game storage ----------
+  // Every saved game lives in one array under GAMES_KEY, so several games can
+  // be in progress at once and the setup screen can list them all for resuming.
+
+  var LEGACY_STATE_KEY = "skyjo-score-state";
+
+  function loadGames() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
+      var raw = localStorage.getItem(GAMES_KEY);
+      var games = raw ? JSON.parse(raw) : [];
+      return Array.isArray(games) ? games : [];
     } catch (e) {
-      return null;
+      return [];
+    }
+  }
+
+  function saveGames(games) {
+    localStorage.setItem(GAMES_KEY, JSON.stringify(games));
+  }
+
+  function findGameIndex(games, id) {
+    for (var i = 0; i < games.length; i++) {
+      if (games[i].id === id) return i;
+    }
+    return -1;
+  }
+
+  function defaultGameName(players) {
+    var names = players.map(function (p) { return p.name; });
+    var shown = names.slice(0, 3).join(", ");
+    return names.length > 3 ? shown + " +" + (names.length - 3) : shown;
+  }
+
+  function makeGameRecord(players, rounds) {
+    var now = Date.now();
+    return {
+      id: "g" + now + Math.random().toString(36).slice(2, 8),
+      name: defaultGameName(players),
+      players: players,
+      rounds: rounds,
+      createdAt: now,
+      updatedAt: now
+    };
+  }
+
+  // One-time migration from the old single-game storage key used before
+  // multi-game support existed, so an in-progress game isn't lost.
+  function migrateLegacyState() {
+    try {
+      var raw = localStorage.getItem(LEGACY_STATE_KEY);
+      localStorage.removeItem(LEGACY_STATE_KEY);
+      if (!raw) return;
+      var legacy = JSON.parse(raw);
+      if (legacy && legacy.players && legacy.players.length) {
+        var games = loadGames();
+        games.unshift(makeGameRecord(legacy.players, legacy.rounds || []));
+        saveGames(games);
+      }
+    } catch (e) {
+      // ignore malformed legacy data
     }
   }
 
   function saveState() {
-    if (state) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }
-
-  function clearState() {
-    localStorage.removeItem(STORAGE_KEY);
+    if (!state) return;
+    state.updatedAt = Date.now();
+    var games = loadGames();
+    var idx = findGameIndex(games, state.id);
+    if (idx === -1) games.unshift(state);
+    else games[idx] = state;
+    saveGames(games);
   }
 
   // ---------- Theme ----------
@@ -165,19 +223,79 @@
       var name = (input.value || "").trim() || ("Player " + (i + 1));
       players.push({ name: name, color: PLAYER_COLORS[i] });
     }
-    state = { players: players, rounds: [] };
+    state = makeGameRecord(players, []);
     addRound();
     saveState();
     showGameScreen();
   });
 
-  els.resumeBtn.addEventListener("click", function () {
-    var saved = loadState();
-    if (saved) {
-      state = saved;
-      showGameScreen();
+  function resumeGame(id) {
+    var games = loadGames();
+    var idx = findGameIndex(games, id);
+    if (idx === -1) return;
+    state = games[idx];
+    showGameScreen();
+  }
+
+  function deleteGame(id, evt) {
+    evt.stopPropagation();
+    if (!window.confirm("Delete this saved game? This can't be undone.")) return;
+    var games = loadGames();
+    var idx = findGameIndex(games, id);
+    if (idx !== -1) {
+      games.splice(idx, 1);
+      saveGames(games);
     }
-  });
+    renderGamesList();
+  }
+
+  function renderGamesList() {
+    var games = loadGames().slice().sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    els.gamesListSection.hidden = games.length === 0;
+    els.gamesList.innerHTML = "";
+
+    games.forEach(function (game) {
+      var row = document.createElement("div");
+      row.className = "game-item";
+      row.addEventListener("click", function () { resumeGame(game.id); });
+
+      var main = document.createElement("div");
+      main.className = "game-item-main";
+
+      var nameEl = document.createElement("div");
+      nameEl.className = "game-item-name";
+      nameEl.textContent = game.name || defaultGameName(game.players);
+      main.appendChild(nameEl);
+
+      var totals = computeTotals(game);
+      var min = Math.min.apply(null, totals);
+      var isOver = Math.max.apply(null, totals) >= 100;
+      var leaders = game.players
+        .filter(function (p, idx) { return totals[idx] === min; })
+        .map(function (p) { return p.name; })
+        .join(" & ");
+      var roundCount = game.rounds ? game.rounds.length : 0;
+      var status = isOver ? ("🏆 " + leaders + " won") : (leaders ? leaders + " leads" : "");
+
+      var meta = document.createElement("div");
+      meta.className = "game-item-meta";
+      meta.textContent = game.players.length + (game.players.length === 1 ? " player" : " players") +
+        " · Round " + roundCount + (status ? " · " + status : "");
+      main.appendChild(meta);
+
+      row.appendChild(main);
+
+      var delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "game-item-delete";
+      delBtn.setAttribute("aria-label", "Delete " + (game.name || "game"));
+      delBtn.textContent = "✕";
+      delBtn.addEventListener("click", function (e) { deleteGame(game.id, e); });
+      row.appendChild(delBtn);
+
+      els.gamesList.appendChild(row);
+    });
+  }
 
   function showRules() {
     els.rulesModal.hidden = false;
@@ -203,18 +321,27 @@
   function showSetupScreen() {
     els.gameScreen.hidden = true;
     els.setupScreen.hidden = false;
-    var saved = loadState();
-    els.resumeBtn.hidden = !saved;
+    renderGamesList();
     updatePlayerCountUI();
     renderNameInputs();
   }
 
-  els.newGameBtn.addEventListener("click", function () {
-    if (window.confirm("Start a new game? This will clear the current scoreboard.")) {
-      clearState();
-      state = null;
-      showSetupScreen();
-    }
+  // The current game auto-saves on every change, so switching back to the
+  // games list is just navigation - nothing is lost, no confirmation needed.
+  els.myGamesBtn.addEventListener("click", function () {
+    showSetupScreen();
+  });
+
+  els.gameNameInput.addEventListener("input", function () {
+    if (!state) return;
+    state.name = els.gameNameInput.value;
+    saveState();
+  });
+  els.gameNameInput.addEventListener("blur", function () {
+    if (!state) return;
+    state.name = els.gameNameInput.value.trim() || defaultGameName(state.players);
+    els.gameNameInput.value = state.name;
+    saveState();
   });
 
   function addRound() {
@@ -256,10 +383,10 @@
     return effectiveScore(round, playerIdx) === Number(raw) * 2 && Number(raw) !== 0;
   }
 
-  function computeTotals() {
-    var totals = state.players.map(function () { return 0; });
-    state.rounds.forEach(function (round) {
-      state.players.forEach(function (p, idx) {
+  function computeTotals(game) {
+    var totals = game.players.map(function () { return 0; });
+    (game.rounds || []).forEach(function (round) {
+      game.players.forEach(function (p, idx) {
         totals[idx] += effectiveScore(round, idx);
       });
     });
@@ -267,6 +394,8 @@
   }
 
   function renderGame() {
+    els.gameNameInput.value = state.name || defaultGameName(state.players);
+
     // Header: names
     els.nameRow.innerHTML = "";
     var rndHeadTh = document.createElement("th");
@@ -429,7 +558,7 @@
     blank.textContent = "Total";
     els.totalRow.appendChild(blank);
 
-    var totals = computeTotals();
+    var totals = computeTotals(state);
     var min = Math.min.apply(null, totals);
 
     totals.forEach(function (t) {
@@ -447,7 +576,7 @@
   }
 
   function renderWinnerBanner() {
-    var totals = computeTotals();
+    var totals = computeTotals(state);
     var maxTotal = Math.max.apply(null, totals);
     if (maxTotal < 100) {
       els.winnerBanner.hidden = true;
@@ -469,12 +598,16 @@
   function boot() {
     initTheme();
     syncAppleTouchIconToSystemAppearance();
+    migrateLegacyState();
     updatePlayerCountUI();
     renderNameInputs();
 
-    var saved = loadState();
-    if (saved && saved.players && saved.players.length) {
-      state = saved;
+    // Drop back into whichever saved game was touched most recently, so a
+    // page refresh mid-game doesn't dump the player onto the games list.
+    var games = loadGames();
+    games.sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    if (games.length && games[0].players && games[0].players.length) {
+      state = games[0];
       showGameScreen();
     } else {
       showSetupScreen();

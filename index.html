@@ -23,6 +23,12 @@
     <div class="setup-card">
       <img src="icons/icon.svg" alt="Skyjo Score" class="hero-logo" id="hero-logo-img">
 
+      <div id="games-list-section" class="games-list-section" hidden>
+        <h2 class="section-heading">Your Games</h2>
+        <div id="games-list" class="games-list"></div>
+        <div class="section-divider"><span>or start a new game</span></div>
+      </div>
+
       <label class="field-label" for="player-count">Number of players</label>
       <div class="stepper">
         <button type="button" id="player-dec" class="stepper-btn" aria-label="Fewer players">&minus;</button>
@@ -33,7 +39,6 @@
       <div id="player-name-inputs" class="name-grid"></div>
 
       <button type="button" id="start-game-btn" class="btn btn-primary btn-block">Start Game</button>
-      <button type="button" id="resume-game-btn" class="btn btn-ghost btn-block" hidden>Resume Previous Game</button>
       <button type="button" id="show-rules-btn" class="btn btn-link">How to score Skyjo</button>
     </div>
   </section>
@@ -45,9 +50,13 @@
       <div class="topbar-actions">
         <button type="button" id="theme-toggle-game" class="icon-btn" aria-label="Toggle dark mode">&#127769;</button>
         <button type="button" id="rules-btn" class="icon-btn" aria-label="Rules">?</button>
-        <button type="button" id="new-game-btn" class="icon-btn" aria-label="New game">&#8635;</button>
+        <button type="button" id="my-games-btn" class="icon-btn" aria-label="My games">&#9776;</button>
       </div>
     </header>
+
+    <div class="game-name-row">
+      <input type="text" id="game-name-input" class="game-name-input" maxlength="40" placeholder="Name this game">
+    </div>
 
     <div id="winner-banner" class="winner-banner" hidden></div>
 
