@@ -1,4 +1,4 @@
-const CACHE_NAME = "skyjo-score-v8";
+const CACHE_NAME = "skyjo-score-v9";
 const ASSETS = [
   "./",
   "./index.html",
