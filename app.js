@@ -38,7 +38,16 @@
     themeToggleGame: document.getElementById("theme-toggle-game"),
     heroLogoImg: document.getElementById("hero-logo-img"),
     brandLogoImg: document.getElementById("brand-logo-img"),
-    gameNameInput: document.getElementById("game-name-input")
+    gameNameInput: document.getElementById("game-name-input"),
+    addPlayerBtn: document.getElementById("add-player-btn"),
+    addPlayerModal: document.getElementById("add-player-modal"),
+    closeAddPlayerBtn: document.getElementById("close-add-player-btn"),
+    addPlayerNameInput: document.getElementById("add-player-name"),
+    avgPreview: document.getElementById("avg-preview"),
+    customScoreRow: document.getElementById("custom-score-row"),
+    customScoreInput: document.getElementById("custom-score-input"),
+    customScoreSignBtn: document.getElementById("custom-score-sign-btn"),
+    confirmAddPlayerBtn: document.getElementById("confirm-add-player-btn")
   };
 
   var state = null; // one saved game record: { id, name, players: [{name,color}], rounds: [{scores:[...], ender:idx|null}], createdAt, updatedAt }
@@ -357,6 +366,82 @@
     renderGame();
   });
 
+  // ---------- Add Player (mid-game) ----------
+
+  function readSignedInput(input) {
+    var negative = input.value.indexOf("-") !== -1;
+    var digits = input.value.replace(/[^0-9]/g, "");
+    return digits === "" ? null : Number(digits) * (negative ? -1 : 1);
+  }
+
+  function wireSignedInput(input, signBtn, onChange) {
+    function apply(toggleSign) {
+      var negative = input.value.indexOf("-") !== -1;
+      var digits = input.value.replace(/[^0-9]/g, "");
+      if (toggleSign) negative = !negative;
+      var num = digits === "" ? null : Number(digits) * (negative ? -1 : 1);
+      input.value = num === null ? (negative ? "-" : "") : String(num);
+      signBtn.classList.toggle("active", negative);
+      if (onChange) onChange(num);
+    }
+    input.addEventListener("input", function () { apply(false); });
+    signBtn.addEventListener("click", function () { apply(true); input.focus(); });
+  }
+
+  wireSignedInput(els.customScoreInput, els.customScoreSignBtn);
+
+  function currentStartScoreMode() {
+    var radios = document.getElementsByName("start-score-mode");
+    for (var i = 0; i < radios.length; i++) {
+      if (radios[i].checked) return radios[i].value;
+    }
+    return "average";
+  }
+
+  Array.prototype.forEach.call(document.getElementsByName("start-score-mode"), function (radio) {
+    radio.addEventListener("change", function () {
+      els.customScoreRow.hidden = currentStartScoreMode() !== "custom";
+    });
+  });
+
+  function showAddPlayerModal() {
+    if (!state || state.players.length >= MAX_PLAYERS) return;
+    els.addPlayerNameInput.value = "";
+    document.getElementsByName("start-score-mode")[0].checked = true;
+    els.customScoreRow.hidden = true;
+    els.customScoreInput.value = "";
+    els.customScoreSignBtn.classList.remove("active");
+    els.avgPreview.textContent = String(averageOf(computeTotals(state)));
+    els.addPlayerModal.hidden = false;
+    els.addPlayerNameInput.focus();
+  }
+
+  function hideAddPlayerModal() {
+    els.addPlayerModal.hidden = true;
+  }
+
+  els.addPlayerBtn.addEventListener("click", showAddPlayerModal);
+  els.closeAddPlayerBtn.addEventListener("click", hideAddPlayerModal);
+  els.addPlayerModal.addEventListener("click", function (e) {
+    if (e.target === els.addPlayerModal) hideAddPlayerModal();
+  });
+
+  els.confirmAddPlayerBtn.addEventListener("click", function () {
+    var name = els.addPlayerNameInput.value.trim() || ("Player " + (state.players.length + 1));
+    var startingScore;
+    if (currentStartScoreMode() === "custom") {
+      startingScore = readSignedInput(els.customScoreInput) || 0;
+    } else {
+      startingScore = averageOf(computeTotals(state));
+    }
+    var color = PLAYER_COLORS[state.players.length % PLAYER_COLORS.length];
+    state.players.push({ name: name, color: color, startingScore: startingScore });
+    state.rounds.forEach(function (round) { round.scores.push(null); });
+    saveState();
+    hideAddPlayerModal();
+    renderGame();
+  });
+
   function effectiveScore(round, playerIdx) {
     var raw = round.scores[playerIdx];
     if (raw === null || raw === undefined || raw === "") return 0;
@@ -384,13 +469,18 @@
   }
 
   function computeTotals(game) {
-    var totals = game.players.map(function () { return 0; });
+    var totals = game.players.map(function (p) { return p.startingScore || 0; });
     (game.rounds || []).forEach(function (round) {
       game.players.forEach(function (p, idx) {
         totals[idx] += effectiveScore(round, idx);
       });
     });
     return totals;
+  }
+
+  function averageOf(totals) {
+    if (!totals.length) return 0;
+    return Math.round(totals.reduce(function (a, b) { return a + b; }, 0) / totals.length);
   }
 
   function renderGame() {
@@ -426,6 +516,13 @@
         renderWinnerBanner();
       });
       wrap.appendChild(input);
+
+      if (p.startingScore) {
+        var note = document.createElement("div");
+        note.className = "start-score-note";
+        note.textContent = "Started at " + p.startingScore;
+        wrap.appendChild(note);
+      }
 
       th.appendChild(wrap);
       els.nameRow.appendChild(th);
@@ -474,18 +571,6 @@
         var val = round.scores[pIdx];
         input.value = (val === null || val === undefined) ? "" : String(val);
         input.placeholder = "–";
-        input.addEventListener("input", function () {
-          var negative = input.value.indexOf("-") !== -1;
-          var digits = input.value.replace(/[^0-9]/g, "");
-          var num = digits === "" ? null : Number(digits) * (negative ? -1 : 1);
-          round.scores[pIdx] = num;
-          input.value = num === null ? (negative ? "-" : "") : String(num);
-          signBtn.classList.toggle("active", negative);
-          saveState();
-          renderTotals();
-          renderDoubledStyles();
-          renderWinnerBanner();
-        });
         stack.appendChild(input);
 
         var controls = document.createElement("div");
@@ -496,21 +581,15 @@
         signBtn.className = "sign-btn" + ((round.scores[pIdx] || 0) < 0 ? " active" : "");
         signBtn.setAttribute("aria-label", "Toggle negative for " + p.name);
         signBtn.innerHTML = "&plusmn;";
-        signBtn.addEventListener("click", function () {
-          var negative = input.value.indexOf("-") !== -1;
-          var digits = input.value.replace(/[^0-9]/g, "");
-          negative = !negative;
-          var num = digits === "" ? null : Number(digits) * (negative ? -1 : 1);
+        controls.appendChild(signBtn);
+
+        wireSignedInput(input, signBtn, function (num) {
           round.scores[pIdx] = num;
-          input.value = num === null ? (negative ? "-" : "") : String(num);
-          signBtn.classList.toggle("active", negative);
-          input.focus();
           saveState();
           renderTotals();
           renderDoubledStyles();
           renderWinnerBanner();
         });
-        controls.appendChild(signBtn);
 
         var flag = document.createElement("button");
         flag.type = "button";
@@ -537,6 +616,7 @@
     renderWinnerBanner();
 
     els.addRoundBtn.hidden = state.rounds.length >= MAX_ROUNDS;
+    els.addPlayerBtn.hidden = state.players.length >= MAX_PLAYERS;
   }
 
   function renderDoubledStyles() {

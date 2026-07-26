@@ -72,6 +72,7 @@
 
     <div class="bottom-actions">
       <button type="button" id="add-round-btn" class="btn btn-primary btn-block">+ Add Round</button>
+      <button type="button" id="add-player-btn" class="btn btn-ghost btn-block">+ Add Player</button>
     </div>
 
     <p class="hint">Tap &plusmn; for a negative score. Tap the flag to mark who ended the round.</p>
@@ -92,6 +93,36 @@
         <li>Round scores add up over the game. Once any player reaches 100+, the round after finishes and the lowest total wins.</li>
       </ul>
       <p class="rules-source">Full rules: <a href="https://www.64ouncegames.com/pages/skyjo-rules" target="_blank" rel="noopener noreferrer">64ouncegames.com/pages/skyjo-rules</a></p>
+    </div>
+  </div>
+
+  <!-- ADD PLAYER MODAL -->
+  <div id="add-player-modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <button type="button" id="close-add-player-btn" class="modal-close" aria-label="Close">&times;</button>
+      <h2>Add a Player</h2>
+
+      <label class="field-label" for="add-player-name">Name</label>
+      <input type="text" id="add-player-name" class="add-player-name-input" maxlength="16" placeholder="Player name" autocomplete="off">
+
+      <p class="field-label modal-section-label">Starting score</p>
+      <div class="radio-group">
+        <label class="radio-option">
+          <input type="radio" name="start-score-mode" value="average" checked>
+          <span>Average of everyone else's score (<span id="avg-preview">0</span>)</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="start-score-mode" value="custom">
+          <span>Set a specific score</span>
+        </label>
+      </div>
+
+      <div id="custom-score-row" class="custom-score-row" hidden>
+        <input type="text" id="custom-score-input" class="score-input" inputmode="numeric" pattern="-?[0-9]*" autocomplete="off" placeholder="0">
+        <button type="button" id="custom-score-sign-btn" class="sign-btn" aria-label="Toggle negative">&plusmn;</button>
+      </div>
+
+      <button type="button" id="confirm-add-player-btn" class="btn btn-primary btn-block modal-confirm-btn">Add Player</button>
     </div>
   </div>
 
